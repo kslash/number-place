@@ -1,15 +1,38 @@
 <template>
-  <div id="number-place">
-    <NumberPlace
-      :code="code"
-      :selectedCell="selectedCell"
-      :edit="edit"
-      @select="onSelect"
-      @valueInput="onValueInput"
-      @share="onShare"
-      @exportImage="onExportImage"
-      @toggleEdit="onToggleEdit"
-    />
+  <div class="flex justify-center justify-items-start">
+    <div class="m-4 w-60"></div>
+    <div id="number-place">
+      <NumberPlace
+        :code="code"
+        :selectedCell="selectedCell"
+        :edit="edit"
+        @select="onSelect"
+        @valueInput="onValueInput"
+        @share="onShare"
+        @exportImage="onExportImage"
+        @toggleEdit="onToggleEdit"
+      />
+    </div>
+    <div class="m-4 w-80 space-y-6">
+      <div>
+        <h1 class="text-2xl">How to Play</h1>
+        <ul class="list-disc list-inside">
+          <li>Arrow Key / jkhl Key: Move cursor</li>
+          <li>e: Toggle edit mode</li>
+          <li>1-9 Key: Input a number</li>
+          <li>0 / Del Key: Delete a number</li>
+          <li>
+            s: Share on Twitter ( current status is copied as image to
+            clipboard)
+          </li>
+          <li>i: Export current status as image</li>
+        </ul>
+      </div>
+      <div>
+        <h1 class="text-2xl">Current Status</h1>
+        mode : {{ edit ? "Edit" : "Play" }}
+      </div>
+    </div>
   </div>
 </template>
 
@@ -43,20 +66,27 @@ export default Vue.extend({
     onShare(code: string, blob: Blob) {
       this.code = code;
       this.$router.replace({ name: "code", params: { code } });
-      navigator.clipboard.write([new ClipboardItem({ [blob.type]:blob })]).then(()=> {
-        const text = this.edit ? "問題を作成しました。解いてみて！": "ナンプレに挑戦中！"
-        const url = encodeURIComponent(window.location.href);
-        const hashtags = encodeURIComponent("ナンプレ");
-        window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}&hashtags=${hashtags}`, "_blank");
-      });
+      navigator.clipboard
+        .write([new ClipboardItem({ [blob.type]: blob })])
+        .then(() => {
+          const text = this.edit
+            ? "問題を作成しました。解いてみて！"
+            : "ナンプレに挑戦中！";
+          const url = encodeURIComponent(window.location.href);
+          const hashtags = encodeURIComponent("ナンプレ");
+          window.open(
+            `https://twitter.com/intent/tweet?text=${text}&url=${url}&hashtags=${hashtags}`,
+            "_blank"
+          );
+        });
     },
     onToggleEdit(code: string, edit: boolean) {
       console.log("onToggleEdit", code, edit);
       this.edit = edit;
       if (edit) {
-        this.$router.push({path: `/${code}?edit`});
+        this.$router.push({ path: `/${code}?edit` });
       } else {
-        this.$router.push({path: `/${code}`});
+        this.$router.push({ path: `/${code}` });
       }
     },
     onExportImage(blob: Blob) {

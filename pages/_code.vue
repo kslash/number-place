@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div id="number-place">
     <NumberPlace
       :code="code"
       :selectedCell="selectedCell"
@@ -76,4 +76,8 @@ export default Vue.extend({
 </script>
 
 <style>
+#number-place {
+  width: 80vmin;
+  height: 80vmin;
+}
 </style>

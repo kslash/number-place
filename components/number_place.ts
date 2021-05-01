@@ -34,19 +34,18 @@ export class NumberPlace {
   }
 
   public set code(value: string) {
-    const numbers = value
-      .split("-")
-      .map((v) => {
-        // base64url -> base64
-        const padded = (v + "===").slice(0, v.length + (v.length % 4));
-        return padded.replace(/-/g, "+").replace(/_/g, "/");
+
+    const numbers = Array.from(value)
+      .reduce((p, c, i) => {
+        p[Math.trunc(i / 6)] += c;
+        return p;
+      }, Array(9).fill(""))
+      .map((v) => decode(v))
+      .map((v: number[]) => {
+        return v
+          .reduce((p, c) => (p << 5) + c, 0);
       })
-      .map((v) => atob(v))
-      .map((v: string) => {
-        return Array.from(v)
-          .map((s) => s.charCodeAt(0))
-          .reduce((p, c) => (p << 8) + c, 0);
-      })
+      .map((v: number) => { console.log(v); return v })
       .map((v: number) => ("00000000" + v).slice(-9))
       .map((v: String) => Array.from(v).map(s => parseInt(s, 10)));
 
@@ -60,8 +59,31 @@ export class NumberPlace {
   }
 
   public get code(): string {
-    return this.rows.map((r) => r.toString()).join("-");
+
+    const value = this.rows.map((row) => {
+      return row.cells.map((v) => v.value).reduce((p, c) => p * 10 + c, 0);
+    }).reduce((p, c) => {
+      let i = 6;
+      let arr = [];
+      while (i-- > 0) {
+        arr.unshift(c & 0x1F);
+        c = (c >>> 5)
+      }
+      return p + encode(arr);
+    }, "");
+
+    return value;
   }
+}
+
+const TABLE = "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456"
+
+function encode(value: number[]): string {
+  return value.reduce((p, v) => p + TABLE.charAt(v), "");
+}
+
+function decode(value: string): number[] {
+  return Array.from(value).map((v) => TABLE.indexOf(v));
 }
 
 export class Block implements Iterable<Cell> {
@@ -87,15 +109,6 @@ export class Block implements Iterable<Cell> {
     }
   }
 
-  public toString(): string {
-    const value = this.cells.map((v) => v.value).reduce((p, c) => p * 10 + c, 0);
-    const v1 = (value & 4278190080) >> 24; // 0xFF000000
-    const v2 = (value & 16711680) >> 16;   // 0x00FF0000
-    const v3 = (value & 65280) >> 8;      // 0x0000FF00
-    const v4 = value & 255;              // 0x000000FF
-    return btoa([v1, v2, v3, v4].map((v) => String.fromCharCode(v)).join(""))
-      .replace(/\+/g, '-').replace(/\//g, '_').replace(/\=+$/, '')
-  }
 }
 
 export class Cell {

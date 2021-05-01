@@ -25,7 +25,7 @@
         }
 
         g.selected-value text {
-          fill: #ff0000;
+          fill: #ff0000 !important;
         }
 
         g.selected rect {
